@@ -4,8 +4,8 @@
 
 - Provides plugin components under `io.kestra.plugin.digitalocean`.
 - Manages DigitalOcean cloud resources through the DigitalOcean API v2 (`https://api.digitalocean.com`):
-  droplets, Kubernetes clusters, managed databases, load balancers, block storage volumes, domain zones
-  and their DNS records, and cloud firewalls.
+  droplets, Kubernetes clusters, managed databases, load balancers, block storage volumes, droplet and
+  volume snapshots, domain zones and their DNS records, and cloud firewalls.
 - Includes a polling trigger (`droplet.Trigger`) that fires when a new droplet appears on the account.
 
 ## Why
@@ -39,7 +39,9 @@ Source packages under `io.kestra.plugin.digitalocean`:
 - `kubernetes`: `List`, `Get`, `Create`, `Delete`, `GetKubeconfig`.
 - `database`: `List`, `Get`, `Create`, `Delete`, `Resize`.
 - `loadbalancer`: `List`, `Get`, `Create`, `Update`, `Delete`.
-- `volume`: `List`, `Get`, `Create`, `Delete`, `Attach`, `Detach`.
+- `volume`: `List`, `Get`, `Create`, `Delete`, `Attach`, `Detach`, `CreateSnapshot`.
+- `snapshot`: `List` (optionally filtered by `resourceType`), `Get`, `Delete` for droplet and volume snapshots
+  (`/v2/snapshots`). Snapshots are created by `volume.CreateSnapshot` or by the droplet `snapshot` action.
 - `domain`: `List`, `Get`, `Create`, `Delete` for domain zones (`/v2/domains`, the zone resource itself).
 - `domain.record`: `List`, `Get`, `Create`, `Delete` for DNS records within a zone
   (`/v2/domains/{domain}/records`). A zone must exist (via `domain.Create`) before records can be added.
@@ -49,7 +51,9 @@ Each resource package has a shared `<Resource>Output` class (e.g. `DropletOutput
 by its `Get` and `Create` (and `Update` where applicable) tasks, since both return the same JSON shape.
 `Delete` tasks return `VoidOutput`. `List` tasks share `AbstractDigitalOceanTask.PageOutput`
 (`rows`/`row`/`uri`/`size`/`total`, following `FetchType`). Droplet actions and volume attach/detach share
-`AbstractDigitalOceanTask.ActionOutput` for DigitalOcean's async action response shape.
+`AbstractDigitalOceanTask.ActionOutput` for DigitalOcean's async action response shape. `snapshot.SnapshotOutput`
+is shared by `snapshot.Get` and `volume.CreateSnapshot`, and keeps the ID as a string because DigitalOcean returns
+an integer for droplet snapshots and a UUID for volume snapshots.
 
 Two list-of-object inputs are typed classes instead of raw maps: `kubernetes.NodePool` (`size`, `name`,
 `count`, already DigitalOcean's own field names) and `loadbalancer.ForwardingRule` (`entryProtocol`,
@@ -81,6 +85,7 @@ plugin-digitalocean/
 │   ├── database/
 │   ├── loadbalancer/
 │   ├── volume/
+│   ├── snapshot/
 │   ├── domain/
 │   │   └── record/
 │   └── firewall/
