@@ -1,7 +1,7 @@
 # How to use the DigitalOcean plugin
 
 This plugin manages DigitalOcean cloud resources (droplets, Kubernetes clusters, databases, load balancers,
-volumes, snapshots, domains, and firewalls) through the [DigitalOcean API v2](https://docs.digitalocean.com/reference/api/).
+volumes, snapshots, domains, firewalls, and billing) through the [DigitalOcean API v2](https://docs.digitalocean.com/reference/api/).
 
 ## Authentication
 
@@ -47,6 +47,9 @@ pagination automatically and reporting the API's `total` count regardless of `fe
 - **`snapshot`**: `List`, `Get`, and `Delete` for droplet and volume snapshots (`/v2/snapshots`). `List`
   takes an optional `resourceType` (`DROPLET` or `VOLUME`). Snapshot IDs are kept as strings, since
   DigitalOcean returns an integer for droplet snapshots and a UUID for volume snapshots.
+- **`billing`**: `GetBalance`, `ListBillingHistory`, `ListInvoices`, and `ListInvoiceItems`, all read-only.
+  `GetBalance` returns the amounts as numbers (DigitalOcean sends them as strings), so they can be
+  compared in expressions, e.g. `{{ outputs.get_balance.monthToDateUsage > 100 }}`.
 - **`domain`**: `List`, `Get`, `Create`, and `Delete` for domain zones themselves (`/v2/domains`), the
   DNS-hosting equivalent of a droplet or a load balancer: the resource that exists on the account, not the
   records inside it.

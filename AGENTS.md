@@ -5,7 +5,7 @@
 - Provides plugin components under `io.kestra.plugin.digitalocean`.
 - Manages DigitalOcean cloud resources through the DigitalOcean API v2 (`https://api.digitalocean.com`):
   droplets, Kubernetes clusters, managed databases, load balancers, block storage volumes, droplet and
-  volume snapshots, domain zones and their DNS records, and cloud firewalls.
+  volume snapshots, domain zones and their DNS records, cloud firewalls, and read-only billing.
 - Includes a polling trigger (`droplet.Trigger`) that fires when a new droplet appears on the account.
 
 ## Why
@@ -42,6 +42,8 @@ Source packages under `io.kestra.plugin.digitalocean`:
 - `volume`: `List`, `Get`, `Create`, `Delete`, `Attach`, `Detach`, `CreateSnapshot`.
 - `snapshot`: `List` (optionally filtered by `resourceType`), `Get`, `Delete` for droplet and volume snapshots
   (`/v2/snapshots`). Snapshots are created by `volume.CreateSnapshot` or by the droplet `snapshot` action.
+- `billing`: `GetBalance`, `ListBillingHistory`, `ListInvoices`, `ListInvoiceItems` (read-only, `/v2/customers/my/...`).
+  `BalanceOutput` parses DigitalOcean's string amounts into `BigDecimal`.
 - `domain`: `List`, `Get`, `Create`, `Delete` for domain zones (`/v2/domains`, the zone resource itself).
 - `domain.record`: `List`, `Get`, `Create`, `Delete` for DNS records within a zone
   (`/v2/domains/{domain}/records`). A zone must exist (via `domain.Create`) before records can be added.
@@ -86,6 +88,7 @@ plugin-digitalocean/
 │   ├── loadbalancer/
 │   ├── volume/
 │   ├── snapshot/
+│   ├── billing/
 │   ├── domain/
 │   │   └── record/
 │   └── firewall/

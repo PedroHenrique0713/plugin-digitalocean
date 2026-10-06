@@ -1,0 +1,8 @@
+group: io.kestra.plugin.digitalocean.billing
+name: "billing"
+title: "DigitalOcean Billing"
+description: "Read-only tasks for DigitalOcean billing."
+body: "Read the account balance and month-to-date usage, list the billing history and invoices, and list the line items of an invoice."
+videos: []
+createdBy: "Kestra Core Team"
+managedBy: "Kestra Core Team"
