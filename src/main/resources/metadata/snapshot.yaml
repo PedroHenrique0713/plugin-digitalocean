@@ -1,0 +1,8 @@
+group: io.kestra.plugin.digitalocean.snapshot
+name: "snapshot"
+title: "DigitalOcean Snapshot"
+description: "Tasks for managing DigitalOcean snapshots of droplets and volumes."
+body: "List snapshots, optionally filtered by resource type, read a snapshot, and delete it. Create volume snapshots with volume.CreateSnapshot and droplet snapshots with the droplet SNAPSHOT action."
+videos: []
+createdBy: "Kestra Core Team"
+managedBy: "Kestra Core Team"
