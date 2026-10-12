@@ -49,6 +49,16 @@ class ResizeTest extends AbstractDigitalOceanTest {
     }
 
     @Test
+    void omitsRegionWhenNotSet(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+        stubPostJson("/v2/volumes/vol-1/actions", 202, ACTION_JSON);
+
+        task(wireMockRuntimeInfo, 200).region(null).build().run(runContext());
+
+        verify(postRequestedFor(urlPathEqualTo("/v2/volumes/vol-1/actions"))
+            .withRequestBody(equalToJson("{\"type\": \"resize\", \"size_gigabytes\": 200}")));
+    }
+
+    @Test
     void rejectsSizeOutsideTheApiRangeBeforeCallingIt(WireMockRuntimeInfo wireMockRuntimeInfo) {
         for (var sizeGigabytes : new int[]{0, 16385}) {
             var task = task(wireMockRuntimeInfo, sizeGigabytes).build();

@@ -23,7 +23,9 @@ final class VolumeActionPayload {
         var payload = new LinkedHashMap<String, Object>();
         payload.put("type", "resize");
         payload.put("size_gigabytes", sizeGigabytes);
-        payload.put("region", region);
+        if (region != null) {
+            payload.put("region", region);
+        }
         return payload;
     }
 

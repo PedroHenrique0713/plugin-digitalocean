@@ -71,7 +71,6 @@ public class Resize extends AbstractDigitalOceanTask implements RunnableTask<Abs
     private Property<Integer> sizeGigabytes;
 
     @Schema(title = "Region", description = "Datacenter region slug the volume lives in, e.g. nyc3.")
-    @NotNull
     @PluginProperty(group = "main")
     private Property<String> region;
 
@@ -85,7 +84,7 @@ public class Resize extends AbstractDigitalOceanTask implements RunnableTask<Abs
             1,
             MAX_SIZE_GIGABYTES
         );
-        var rRegion = requireRendered(runContext, region, String.class, "region");
+        var rRegion = runContext.render(region).as(String.class).orElse(null);
         var rApiToken = renderApiToken(runContext);
         var rBaseUrl = renderBaseUrl(runContext);
 
