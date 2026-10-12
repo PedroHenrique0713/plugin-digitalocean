@@ -3,8 +3,8 @@ package io.kestra.plugin.digitalocean.spaces.key;
 import io.kestra.core.models.tasks.Output;
 import io.kestra.plugin.digitalocean.AbstractDigitalOceanTask;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.Objects;
 
 import static io.kestra.plugin.digitalocean.AbstractDigitalOceanTask.asString;
 
-@Builder
+@SuperBuilder
 @Getter
 public class KeyOutput implements Output {
 
@@ -30,14 +30,18 @@ public class KeyOutput implements Output {
     private final Instant createdAt;
 
     public static KeyOutput from(Map<String, Object> key) {
+        return withKeyFields(KeyOutput.builder(), key).build();
+    }
+
+    static <B extends KeyOutputBuilder<?, ?>> B withKeyFields(B builder, Map<String, Object> key) {
         var createdAt = asString(key.get("created_at"));
 
-        return KeyOutput.builder()
+        builder
             .name(asString(key.get("name")))
             .accessKey(asString(key.get("access_key")))
             .grants(grants(key.get("grants")))
-            .createdAt(createdAt != null ? Instant.parse(createdAt) : null)
-            .build();
+            .createdAt(createdAt != null ? Instant.parse(createdAt) : null);
+        return builder;
     }
 
     static List<Map<String, String>> grants(Object value) {

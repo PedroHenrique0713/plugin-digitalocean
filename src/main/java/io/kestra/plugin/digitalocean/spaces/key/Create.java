@@ -11,7 +11,6 @@ import io.kestra.core.runners.RunContext;
 import io.kestra.plugin.digitalocean.AbstractDigitalOceanTask;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +18,6 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.net.URI;
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,21 +105,13 @@ public class Create extends AbstractDigitalOceanTask implements RunnableTask<Cre
         if (secretKey == null) {
             logger.warn("DigitalOcean did not return a secret key for access key {}.", asString(key.get("access_key")));
         }
-        var created = KeyOutput.from(key);
 
-        return Output.builder()
-            .name(created.getName())
-            .accessKey(created.getAccessKey())
+        return KeyOutput.withKeyFields(Output.builder(), key)
             .secretKey(secretKey != null ? EncryptedString.from(secretKey, runContext) : null)
-            .grants(created.getGrants())
-            .createdAt(created.getCreatedAt())
             .build();
     }
 
-    /**
-     * Rejects grants DigitalOcean would refuse or silently widen: a scoped grant without a bucket, and
-     * FULLACCESS mixed with scoped grants (the API documents that FULLACCESS then takes priority).
-     */
+    // FULLACCESS mixed with scoped grants would silently take priority and widen the key.
     static List<Map<String, Object>> validateGrants(List<Grant> grants) {
         if (grants == null || grants.isEmpty()) {
             return List.of();
@@ -149,26 +139,14 @@ public class Create extends AbstractDigitalOceanTask implements RunnableTask<Cre
         return grants.stream().map(Grant::toMap).toList();
     }
 
-    @Builder
+    @SuperBuilder
     @Getter
-    public static class Output implements io.kestra.core.models.tasks.Output {
-
-        @Schema(title = "Key name")
-        private final String name;
-
-        @Schema(title = "Access key ID", description = "The access key ID used to access the buckets.")
-        private final String accessKey;
+    public static class Output extends KeyOutput {
 
         @Schema(
             title = "Secret key",
             description = "The secret key, encrypted in the execution outputs. DigitalOcean returns it only at creation, so store it right away, e.g. in a secret manager."
         )
         private final EncryptedString secretKey;
-
-        @Schema(title = "Grants", description = "Bucket permissions of the key, each with a bucket and a permission (read, readwrite, or fullaccess).")
-        private final List<Map<String, String>> grants;
-
-        @Schema(title = "Creation timestamp")
-        private final Instant createdAt;
     }
 }
