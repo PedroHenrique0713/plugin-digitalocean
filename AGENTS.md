@@ -6,7 +6,7 @@
 - Manages DigitalOcean cloud resources through the DigitalOcean API v2 (`https://api.digitalocean.com`):
   droplets, Kubernetes clusters, managed databases, load balancers, block storage volumes, droplet and
   volume snapshots, domain zones and their DNS records, cloud firewalls, read-only billing, Spaces access
-  keys, security (CSPM) scans, and CDN endpoints.
+  keys, security (CSPM) scans and settings, and CDN endpoints.
 - Includes a polling trigger (`droplet.Trigger`) that fires when a new droplet appears on the account.
 
 ## Why
@@ -56,7 +56,11 @@ Source packages under `io.kestra.plugin.digitalocean`:
   the secret key, which DigitalOcean only sends once, as an `EncryptedString` output; `Get` and `List` never include it.
 - `security.scan`: `List`, `Create`, `Get`, `GetLatest`, `ListAffectedResources` for security (CSPM) scans
   (`/v2/security/scans`). `Get` and `GetLatest` share `AbstractGetScanTask` and return one page of findings;
-  `List` drops the findings from each row.
+  `List` drops the findings from each row. `CreateRule` (`/v2/security/scans/rules`) excludes a resource
+  from future scans.
+- `security.settings`: `Get`, `UpdatePlan`, `CreateSuppression`, `DeleteSuppression` for security (CSPM)
+  settings (`/v2/security/settings`). `Get` and `CreateSuppression` read suppressions through the
+  package-private `SuppressionPage`; `UpdatePlan` takes a map of `TierCoverage` beans.
 - `cdn`: `List`, `Get`, `Create`, `Update`, `Delete`, `PurgeCache` for CDN endpoints (`/v2/cdn/endpoints`). `Create` and
   `Update` check `ttl` against the five values the API accepts; `PurgeCache` sends the paths in a DELETE body.
 
@@ -107,7 +111,8 @@ plugin-digitalocean/
 │   ├── spaces/
 │   │   └── key/
 │   ├── security/
-│   │   └── scan/
+│   │   ├── scan/
+│   │   └── settings/
 │   └── cdn/
 ├── src/test/java/io/kestra/plugin/digitalocean/ (WireMock-based tests, one class per task/trigger)
 ├── build.gradle

@@ -1,7 +1,7 @@
 # How to use the DigitalOcean plugin
 
 This plugin manages DigitalOcean cloud resources (droplets, Kubernetes clusters, databases, load balancers,
-volumes, snapshots, domains, firewalls, billing, Spaces access keys, security scans, and CDN endpoints) through the [DigitalOcean API v2](https://docs.digitalocean.com/reference/api/).
+volumes, snapshots, domains, firewalls, billing, Spaces access keys, security scans and settings, and CDN endpoints) through the [DigitalOcean API v2](https://docs.digitalocean.com/reference/api/).
 
 ## Authentication
 
@@ -71,7 +71,12 @@ pagination automatically and reporting the API's `total` count regardless of `fe
 - **`security.scan`**: `List`, `Create`, `Get`, `GetLatest`, and `ListAffectedResources` for security (CSPM)
   scans. `Create` starts a scan and returns without waiting; poll `Get` until the status leaves
   `IN_PROGRESS`. `Get` and `GetLatest` return the scan with one page of findings (up to 200), which can be
-  filtered by `severity` or `findingType`; `List` returns the scans without their findings.
+  filtered by `severity` or `findingType`; `List` returns the scans without their findings. `CreateRule`
+  excludes a resource from future scans.
+- **`security.settings`**: `Get`, `UpdatePlan`, `CreateSuppression`, and `DeleteSuppression`. `Get` returns
+  the coverage of each plan tier, the scheduled downgrades, and one page of rule suppressions (up to 200).
+  `UpdatePlan` sets the resources and tags each tier scans, from a `tierCoverage` map of `TierCoverage`
+  (`resources`, `tags`). `CreateSuppression` stops a rule from reporting findings on the given resources.
 - **`cdn`**: `List`, `Get`, `Create`, `Update`, `Delete`, and `PurgeCache` for CDN endpoints in front of Spaces
   buckets. `ttl` is in seconds and must be 60, 600, 3600, 86400, or 604800. `PurgeCache` takes the paths to
   purge, relative to the bucket; a path ending in `*` purges everything under it, and `*` alone the whole cache.

@@ -2,7 +2,7 @@ group: io.kestra.plugin.digitalocean.security.scan
 name: "scan"
 title: "DigitalOcean Security Scan"
 description: "Tasks for DigitalOcean security (CSPM) scans."
-body: "Start a security scan, list the scans of the account, read a scan or the latest one with its findings filtered by severity or type, and list the resources affected by a finding."
+body: "Start a security scan, list the scans of the account, read a scan or the latest one with its findings filtered by severity or type, list the resources affected by a finding, and exclude a resource from future scans."
 videos: []
 createdBy: "Kestra Core Team"
 managedBy: "Kestra Core Team"
