@@ -1,0 +1,8 @@
+group: io.kestra.plugin.digitalocean.cdn
+name: "cdn"
+title: "DigitalOcean CDN"
+description: "Tasks for managing DigitalOcean CDN endpoints."
+body: "List, read, create, update, and delete the CDN endpoints in front of Spaces buckets, and purge their cache after new files are uploaded."
+videos: []
+createdBy: "Kestra Core Team"
+managedBy: "Kestra Core Team"
