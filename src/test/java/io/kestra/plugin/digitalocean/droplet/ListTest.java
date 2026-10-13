@@ -8,6 +8,8 @@ import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.digitalocean.AbstractDigitalOceanTest;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.time.Duration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
@@ -90,6 +92,38 @@ class ListTest extends AbstractDigitalOceanTest {
         assertThat(output.getTotal(), is(1L));
         assertThat(output.getRows(), is((java.util.List<java.util.Map<String, Object>>) null));
         assertThat(output.getRow().get("id"), is(3164444));
+    }
+
+    @Test
+    void storeReportsTheNumberOfStoredRows(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+        stubGetJson("/v2/droplets", """
+            {
+              "droplets": [
+                {"id": 3164444, "name": "web-01", "status": "active"},
+                {"id": 3164445, "name": "web-02", "status": "active"}
+              ],
+              "links": {"pages": {}},
+              "meta": {"total": 2}
+            }
+            """);
+
+        var task = List.builder()
+            .id(IdUtils.create())
+            .type(List.class.getName())
+            .apiToken(Property.ofValue("test-token"))
+            .baseUrl(Property.ofValue(wireMockRuntimeInfo.getHttpBaseUrl()))
+            .fetchType(Property.ofValue(FetchType.STORE))
+            .build();
+
+        var runContext = runContext();
+        var output = task.run(runContext);
+
+        assertThat(output.getSize(), is(2));
+        assertThat(output.getTotal(), is(2L));
+        assertThat(output.getRows(), is((java.util.List<java.util.Map<String, Object>>) null));
+        try (var reader = new BufferedReader(new InputStreamReader(runContext.storage().getFile(output.getUri())))) {
+            assertThat(reader.lines().filter(line -> !line.isBlank()).count(), is(2L));
+        }
     }
 
     @Test

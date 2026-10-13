@@ -507,7 +507,10 @@ public abstract class AbstractDigitalOceanTask extends Task {
 
     protected static PageOutput toPageOutput(RunContext runContext, Property<FetchType> fetchType, List<Map<String, Object>> items, long total) throws Exception {
         var result = fetchOutput(runContext, fetchType, items);
-        var size = result.items() != null ? result.items().size() : (result.first() != null ? 1 : 0);
+        var size = result.items() != null ? result.items().size()
+            : result.first() != null ? 1
+            : result.uri() != null ? items.size()
+            : 0;
 
         return PageOutput.builder()
             .rows(result.items())
