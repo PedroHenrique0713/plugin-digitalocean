@@ -108,6 +108,11 @@ public abstract class AbstractDigitalOceanTask extends Task {
         );
     }
 
+    // toBuilder() on Kestra 1.3 injects basic auth null:null, which overrides the Bearer header.
+    protected static HttpConfiguration clientConfiguration(HttpConfiguration options) {
+        return options != null ? options : HttpConfiguration.builder().build();
+    }
+
     /**
      * Shared HTTP call logic: attaches the bearer token, executes the request, and on a non-2xx response
      * rewrites the failure into a clear, actionable message (never a raw stack trace). Defaults to
@@ -136,8 +141,7 @@ public abstract class AbstractDigitalOceanTask extends Task {
         Class<RES> responseType,
         String acceptHeader
     ) throws Exception {
-        var configBuilder = options != null ? options.toBuilder() : HttpConfiguration.builder();
-        try (var client = new HttpClient(runContext, configBuilder.build())) {
+        try (var client = new HttpClient(runContext, clientConfiguration(options))) {
             return request(client, runContext, apiToken, requestBuilder, responseType, acceptHeader);
         }
     }
@@ -404,8 +408,7 @@ public abstract class AbstractDigitalOceanTask extends Task {
 
         // One HttpClient (and its connection pool) for every page of this call, instead of a fresh
         // client, and a fresh TLS handshake, per page.
-        var configBuilder = options != null ? options.toBuilder() : HttpConfiguration.builder();
-        try (var client = new HttpClient(runContext, configBuilder.build())) {
+        try (var client = new HttpClient(runContext, clientConfiguration(options))) {
             while (url != null) {
                 pageCount++;
                 if (pageCount > maxPages) {
