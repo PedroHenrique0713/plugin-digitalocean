@@ -48,6 +48,8 @@ Source packages under `io.kestra.plugin.digitalocean`:
 - `domain.record`: `List`, `Get`, `Create`, `Delete` for DNS records within a zone
   (`/v2/domains/{domain}/records`). A zone must exist (via `domain.Create`) before records can be added.
 - `firewall`: `List`, `Get`, `Create`, `Delete`.
+- `monitoring.alertpolicy`: `List`, `Get`, `Create`, `Update`, `Delete` for monitoring alert policies (`/v2/monitoring/alerts`).
+- `monitoring.metrics`: `DropletCpu`, `DropletMemory`, `DropletBandwidth`, `DropletDisk` for Droplet performance metrics (`/v2/monitoring/metrics/droplet/...`).
 
 Each resource package has a shared `<Resource>Output` class (e.g. `DropletOutput`, `ClusterOutput`) reused
 by its `Get` and `Create` (and `Update` where applicable) tasks, since both return the same JSON shape.
