@@ -43,7 +43,10 @@ pagination automatically and reporting the API's `total` count regardless of `fe
 - **`loadbalancer`**: `List`, `Get`, `Create`, `Update`, and `Delete`. DigitalOcean's update endpoint
   replaces the full configuration, not a partial patch: `Update` always requires `name`, `region`, and
   `forwardingRules` again, even to change a single field.
-- **`volume`**: `List`, `Get`, `Create`, `Delete`, `Attach`, `Detach`, and `CreateSnapshot`.
+- **`volume`**: `List`, `Get`, `Create`, `Delete`, `Attach`, `Detach`, `Resize`, and `CreateSnapshot`, plus
+  `GetAction` and `ListActions` to follow the asynchronous attach, detach and resize actions. `Resize` only
+  grows a volume (up to 16 TiB) and does not grow the filesystem on it; pass its `actionId` output to
+  `GetAction` to check when the resize completes.
 - **`snapshot`**: `List`, `Get`, and `Delete` for droplet and volume snapshots (`/v2/snapshots`). `List`
   takes an optional `resourceType` (`DROPLET` or `VOLUME`). Snapshot IDs are kept as strings, since
   DigitalOcean returns an integer for droplet snapshots and a UUID for volume snapshots.
@@ -59,6 +62,8 @@ pagination automatically and reporting the API's `total` count regardless of `fe
   to it. `Create`'s `recordType` is the `RecordType` enum (A, AAAA, CAA, CNAME, MX, NS, SRV, TXT); SOA is
   excluded because DigitalOcean manages a zone's SOA record automatically and does not allow creating one.
 - **`firewall`**: `List`, `Get`, `Create`, and `Delete`.
+- **`monitoring.alertpolicy`**: `List`, `Get`, `Create`, `Update`, and `Delete` for DigitalOcean monitoring alert policies.
+- **`monitoring.metrics`**: `DropletCpu`, `DropletMemory`, `DropletBandwidth`, and `DropletDisk` for Droplet performance metrics over a time window. Time bounds accept `Instant` or ISO-8601 strings and are sent as UNIX epoch seconds.
 - **`spaces.key`**: `List`, `Get`, `Create`, and `Delete` for Spaces access keys. `Create` takes `grants`, each a
   `bucket` and a `permission` (READ or READWRITE), or a single FULLACCESS grant with no bucket; the two kinds
   cannot be mixed. DigitalOcean returns the secret key only once, so `Create` outputs it as an encrypted
