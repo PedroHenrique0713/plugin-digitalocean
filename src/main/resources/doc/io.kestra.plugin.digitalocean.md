@@ -1,7 +1,7 @@
 # How to use the DigitalOcean plugin
 
 This plugin manages DigitalOcean cloud resources (droplets, Kubernetes clusters, databases, load balancers,
-volumes, snapshots, domains, firewalls, and billing) through the [DigitalOcean API v2](https://docs.digitalocean.com/reference/api/).
+volumes, snapshots, domains, firewalls, billing, and Spaces access keys) through the [DigitalOcean API v2](https://docs.digitalocean.com/reference/api/).
 
 ## Authentication
 
@@ -61,9 +61,13 @@ pagination automatically and reporting the API's `total` count regardless of `fe
   every task in this package. A zone must already exist (via `domain.Create`) before records can be added
   to it. `Create`'s `recordType` is the `RecordType` enum (A, AAAA, CAA, CNAME, MX, NS, SRV, TXT); SOA is
   excluded because DigitalOcean manages a zone's SOA record automatically and does not allow creating one.
-- **`firewall`**: `List`, `Get`, `Create`, `Delete`.
+- **`firewall`**: `List`, `Get`, `Create`, and `Delete`.
 - **`monitoring.alertpolicy`**: `List`, `Get`, `Create`, `Update`, and `Delete` for DigitalOcean monitoring alert policies.
 - **`monitoring.metrics`**: `DropletCpu`, `DropletMemory`, `DropletBandwidth`, and `DropletDisk` for Droplet performance metrics over a time window. Time bounds accept `Instant` or ISO-8601 strings and are sent as UNIX epoch seconds.
+- **`spaces.key`**: `List`, `Get`, `Create`, and `Delete` for Spaces access keys. `Create` takes `grants`, each a
+  `bucket` and a `permission` (READ or READWRITE), or a single FULLACCESS grant with no bucket; the two kinds
+  cannot be mixed. DigitalOcean returns the secret key only once, so `Create` outputs it as an encrypted
+  string (configure Kestra's encryption secret key) and `Get`/`List` never include it.
 
 Kubernetes node pools (`kubernetes.Create.nodePools`, a `NodePool` with `size`, `name`, `count`) and load
 balancer forwarding rules (`loadbalancer.Create`/`Update.forwardingRules`, a `ForwardingRule` with
