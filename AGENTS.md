@@ -5,8 +5,8 @@
 - Provides plugin components under `io.kestra.plugin.digitalocean`.
 - Manages DigitalOcean cloud resources through the DigitalOcean API v2 (`https://api.digitalocean.com`):
   droplets, Kubernetes clusters, managed databases, load balancers, block storage volumes, droplet and
-  volume snapshots, domain zones and their DNS records, cloud firewalls, read-only billing, and Spaces
-  access keys.
+  volume snapshots, domain zones and their DNS records, cloud firewalls, read-only billing, Spaces access
+  keys, and security (CSPM) scans.
 - Includes a polling trigger (`droplet.Trigger`) that fires when a new droplet appears on the account.
 
 ## Why
@@ -54,6 +54,9 @@ Source packages under `io.kestra.plugin.digitalocean`:
 - `monitoring.metrics`: `DropletCpu`, `DropletMemory`, `DropletBandwidth`, `DropletDisk` for Droplet performance metrics (`/v2/monitoring/metrics/droplet/...`).
 - `spaces.key`: `List`, `Get`, `Create`, `Delete` for Spaces access keys (`/v2/spaces/keys`). `Create` returns
   the secret key, which DigitalOcean only sends once, as an `EncryptedString` output; `Get` and `List` never include it.
+- `security.scan`: `List`, `Create`, `Get`, `GetLatest`, `ListAffectedResources` for security (CSPM) scans
+  (`/v2/security/scans`). `Get` and `GetLatest` share `AbstractGetScanTask` and return one page of findings;
+  `List` drops the findings from each row.
 
 Each resource package has a shared `<Resource>Output` class (e.g. `DropletOutput`, `ClusterOutput`) reused
 by its `Get` and `Create` (and `Update` where applicable) tasks, since both return the same JSON shape.
@@ -99,8 +102,10 @@ plugin-digitalocean/
 │   ├── domain/
 │   │   └── record/
 │   ├── firewall/
-│   └── spaces/
-│       └── key/
+│   ├── spaces/
+│   │   └── key/
+│   └── security/
+│       └── scan/
 ├── src/test/java/io/kestra/plugin/digitalocean/ (WireMock-based tests, one class per task/trigger)
 ├── build.gradle
 └── README.md
