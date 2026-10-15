@@ -31,8 +31,9 @@ import java.util.Map;
     description = """
         Removes cached files from a CDN endpoint so the next request fetches them again from the Spaces bucket, \
         e.g. right after uploading a new version. A path can name one file or end with a wildcard (`css/*`) to \
-        purge everything under it; `*` alone purges the whole cache. DigitalOcean purges at most 50 files per \
-        20 seconds, and a wildcard path counts as one."""
+        purge everything under it; `*` alone purges the whole cache. The API token needs the `cdn:delete` scope. \
+        DigitalOcean purges at most 50 files per 20 seconds, and a wildcard path counts as one; CDN endpoints also \
+        accept at most 5 requests per 10 seconds."""
 )
 @Plugin(
     examples = {
@@ -74,8 +75,7 @@ public class PurgeCache extends AbstractDigitalOceanTask implements RunnableTask
     public VoidOutput run(RunContext runContext) throws Exception {
         var logger = runContext.logger();
         var rEndpointId = requireRendered(runContext, endpointId, String.class, "endpointId");
-        @SuppressWarnings("unchecked")
-        var rFiles = (List<String>) runContext.render(files).asList(String.class);
+        var rFiles = runContext.render(files).asList(String.class);
         if (rFiles.isEmpty()) {
             throw new IllegalArgumentException("files must list at least one path; use * to purge the whole cache");
         }

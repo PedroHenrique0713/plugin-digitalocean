@@ -26,7 +26,7 @@ import java.util.LinkedHashMap;
 @NoArgsConstructor
 @Schema(
     title = "Update a DigitalOcean CDN endpoint",
-    description = "Changes a CDN endpoint's cache TTL, custom domain, or certificate. Only the properties that are set are sent; the origin cannot be changed."
+    description = "Changes a CDN endpoint's cache TTL, custom domain, or certificate. Only the properties that are set are sent, so a custom domain can be set or changed but not cleared with this task; the origin cannot be changed."
 )
 @Plugin(
     examples = {
