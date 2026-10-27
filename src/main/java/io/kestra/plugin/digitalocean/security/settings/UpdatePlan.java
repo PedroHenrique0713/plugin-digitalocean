@@ -58,8 +58,9 @@ public class UpdatePlan extends AbstractDigitalOceanTask implements RunnableTask
 
     @Schema(
         title = "Tier coverage",
-        description = "Coverage per plan tier, keyed by tier name (e.g. basic), each with the `resources` (URNs) and " +
-            "`tags` to scan. A list left out is sent empty."
+        description = """
+            Coverage per plan tier, keyed by tier name (e.g. basic), each with the `resources` (URNs) and \
+            `tags` to scan. A list left out is sent empty."""
     )
     @NotNull
     @PluginProperty(group = "main")

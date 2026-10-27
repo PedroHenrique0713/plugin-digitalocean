@@ -20,7 +20,7 @@ record SuppressionPage(List<Map<String, Object>> rows, long total) {
             .filter(Objects::nonNull)
             .toList();
         var meta = asMap(block.get("meta"));
-        long total = meta != null && meta.get("total") instanceof Number number ? number.longValue() : rows.size();
+        var total = meta != null && meta.get("total") instanceof Number number ? number.longValue() : rows.size();
 
         return new SuppressionPage(rows, total);
     }
