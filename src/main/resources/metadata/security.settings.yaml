@@ -1,0 +1,8 @@
+group: io.kestra.plugin.digitalocean.security.settings
+name: "settings"
+title: "DigitalOcean Security Settings"
+description: "Tasks for DigitalOcean security (CSPM) settings."
+body: "Read the security settings of the account, set the resources and tags each plan tier scans, and suppress a rule's findings on given resources or remove a suppression."
+videos: []
+createdBy: "Kestra Core Team"
+managedBy: "Kestra Core Team"
