@@ -29,8 +29,9 @@ import java.util.Map;
 @NoArgsConstructor
 @Schema(
     title = "Suppress a DigitalOcean security rule on resources",
-    description = "Suppresses the findings of a security (CSPM) rule on the given resources, so later scans stop " +
-        "reporting them, and returns the suppressions created."
+    description = """
+        Suppresses the findings of a security (CSPM) rule on the given resources, so later scans stop \
+        reporting them, and returns the suppressions created."""
 )
 @Plugin(
     examples = {
@@ -100,7 +101,7 @@ public class CreateSuppression extends AbstractDigitalOceanTask implements Runna
 
         return Output.builder()
             .suppressions(suppressions.rows())
-            .total(suppressions.total())
+            .suppressionsTotal(suppressions.total())
             .build();
     }
 
@@ -115,6 +116,6 @@ public class CreateSuppression extends AbstractDigitalOceanTask implements Runna
         private final List<Map<String, Object>> suppressions;
 
         @Schema(title = "Total suppressions", description = "Number of suppressions reported by the DigitalOcean API (meta.total).")
-        private final Long total;
+        private final Long suppressionsTotal;
     }
 }

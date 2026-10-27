@@ -51,7 +51,7 @@ class CreateSuppressionTest extends AbstractDigitalOceanTest {
         assertThat(output.getSuppressions(), hasSize(1));
         assertThat(output.getSuppressions().getFirst().get("id"), is("760e09ef-dc84-11e8-981e-3cfdfeaae000"));
         assertThat(output.getSuppressions().getFirst().get("resource_type"), is("Droplet"));
-        assertThat(output.getTotal(), is(1L));
+        assertThat(output.getSuppressionsTotal(), is(1L));
         verify(postRequestedFor(urlPathEqualTo(SUPPRESSIONS_PATH)).withRequestBody(equalToJson(
             "{\"rule_uuid\": \"" + RULE_ID + "\", \"resources\": [\"" + DROPLET_URN + "\"]}"
         )));

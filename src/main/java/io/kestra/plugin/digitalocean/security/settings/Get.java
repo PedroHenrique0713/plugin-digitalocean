@@ -28,8 +28,9 @@ import java.util.Objects;
 @NoArgsConstructor
 @Schema(
     title = "Get the DigitalOcean security settings",
-    description = "Reads the security (CSPM) settings of the account: the resources and tags each plan tier scans, " +
-        "the coverage downgrades scheduled, and one page of the rule suppressions."
+    description = """
+        Reads the security (CSPM) settings of the account: the resources and tags each plan tier scans, \
+        the coverage downgrades scheduled, and one page of the rule suppressions."""
 )
 @Plugin(
     examples = {
@@ -60,8 +61,9 @@ public class Get extends AbstractDigitalOceanTask implements RunnableTask<Get.Ou
 
     @Schema(
         title = "Suppressions page",
-        description = "Page of suppressions to read, starting at 1. DigitalOcean paginates the suppressions inside the " +
-            "settings, so an account with more suppressions than `perPage` needs one call per page."
+        description = """
+            Page of suppressions to read, starting at 1. DigitalOcean paginates the suppressions inside the \
+            settings, so an account with more suppressions than `perPage` needs one call per page."""
     )
     @Builder.Default
     @PluginProperty(group = "processing")

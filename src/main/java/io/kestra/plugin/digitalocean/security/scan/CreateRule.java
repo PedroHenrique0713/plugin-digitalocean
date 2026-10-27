@@ -27,8 +27,9 @@ import java.util.Map;
 @NoArgsConstructor
 @Schema(
     title = "Exclude a resource from DigitalOcean security scans",
-    description = "Creates a scan rule that excludes a resource from future security (CSPM) scans, e.g. to mark the " +
-        "findings on it as false positives."
+    description = """
+        Creates a scan rule that excludes a resource from future security (CSPM) scans, e.g. to mark the \
+        findings on it as false positives."""
 )
 @Plugin(
     examples = {
