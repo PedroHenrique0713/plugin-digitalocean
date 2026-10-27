@@ -4,11 +4,13 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import io.kestra.core.http.client.HttpClientResponseException;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.common.FetchType;
+import io.kestra.core.serializers.FileSerde;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.digitalocean.AbstractDigitalOceanTest;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -17,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ListTest extends AbstractDigitalOceanTest {
@@ -88,8 +91,42 @@ class ListTest extends AbstractDigitalOceanTest {
         var output = task.run(runContext());
 
         assertThat(output.getTotal(), is(1L));
-        assertThat(output.getRows(), is((java.util.List<java.util.Map<String, Object>>) null));
+        assertThat(output.getRows(), nullValue());
         assertThat(output.getRow().get("id"), is(3164444));
+    }
+
+    @Test
+    void storeReportsTheNumberOfStoredRows(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+        stubGetJson("/v2/droplets", """
+            {
+              "droplets": [
+                {"id": 3164444, "name": "web-01", "status": "active"},
+                {"id": 3164445, "name": "web-02", "status": "active"}
+              ],
+              "links": {"pages": {}},
+              "meta": {"total": 2}
+            }
+            """);
+
+        var task = List.builder()
+            .id(IdUtils.create())
+            .type(List.class.getName())
+            .apiToken(Property.ofValue("test-token"))
+            .baseUrl(Property.ofValue(wireMockRuntimeInfo.getHttpBaseUrl()))
+            .fetchType(Property.ofValue(FetchType.STORE))
+            .build();
+
+        var runContext = runContext();
+        var output = task.run(runContext);
+
+        assertThat(output.getSize(), is(2));
+        assertThat(output.getTotal(), is(2L));
+        assertThat(output.getRows(), nullValue());
+        try (var inputStream = runContext.storage().getFile(output.getUri())) {
+            var stored = FileSerde.readAll(inputStream).collectList().block();
+            assertThat(stored, hasSize(2));
+            assertThat(((Map<?, ?>) stored.getFirst()).get("name"), is("web-01"));
+        }
     }
 
     @Test
