@@ -4,13 +4,13 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import io.kestra.core.http.client.HttpClientResponseException;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.common.FetchType;
+import io.kestra.core.serializers.FileSerde;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.digitalocean.AbstractDigitalOceanTest;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.time.Duration;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -19,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ListTest extends AbstractDigitalOceanTest {
@@ -90,7 +91,7 @@ class ListTest extends AbstractDigitalOceanTest {
         var output = task.run(runContext());
 
         assertThat(output.getTotal(), is(1L));
-        assertThat(output.getRows(), is((java.util.List<java.util.Map<String, Object>>) null));
+        assertThat(output.getRows(), nullValue());
         assertThat(output.getRow().get("id"), is(3164444));
     }
 
@@ -120,9 +121,11 @@ class ListTest extends AbstractDigitalOceanTest {
 
         assertThat(output.getSize(), is(2));
         assertThat(output.getTotal(), is(2L));
-        assertThat(output.getRows(), is((java.util.List<java.util.Map<String, Object>>) null));
-        try (var reader = new BufferedReader(new InputStreamReader(runContext.storage().getFile(output.getUri())))) {
-            assertThat(reader.lines().filter(line -> !line.isBlank()).count(), is(2L));
+        assertThat(output.getRows(), nullValue());
+        try (var inputStream = runContext.storage().getFile(output.getUri())) {
+            var stored = FileSerde.readAll(inputStream).collectList().block();
+            assertThat(stored, hasSize(2));
+            assertThat(((Map<?, ?>) stored.getFirst()).get("name"), is("web-01"));
         }
     }
 

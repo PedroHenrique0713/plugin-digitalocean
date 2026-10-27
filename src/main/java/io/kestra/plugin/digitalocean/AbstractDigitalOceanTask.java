@@ -457,28 +457,29 @@ public abstract class AbstractDigitalOceanTask extends Task {
 
     /**
      * Shared FetchType handling for list tasks: FETCH keeps all items, FETCH_ONE keeps the first,
-     * STORE writes the items to an ion file in internal storage, NONE keeps only the count.
+     * STORE writes the items to an ion file in internal storage, NONE keeps nothing (total still carries the API count).
      */
     protected static <T> FetchResult<T> fetchOutput(RunContext runContext, Property<FetchType> fetchType, List<T> items) throws Exception {
         return switch (runContext.render(fetchType).as(FetchType.class).orElse(FetchType.FETCH)) {
-            case FETCH -> new FetchResult<>(items, null, null);
-            case FETCH_ONE -> new FetchResult<>(null, items.isEmpty() ? null : items.getFirst(), null);
-            case STORE -> new FetchResult<>(null, null, store(runContext, items));
-            case NONE -> new FetchResult<>(null, null, null);
+            case FETCH -> new FetchResult<>(items, null, null, items.size());
+            case FETCH_ONE -> new FetchResult<>(null, items.isEmpty() ? null : items.getFirst(), null, Math.min(items.size(), 1));
+            case STORE -> store(runContext, items);
+            case NONE -> new FetchResult<>(null, null, null, 0);
         };
     }
 
-    private static <T> URI store(RunContext runContext, List<T> items) throws Exception {
+    private static <T> FetchResult<T> store(RunContext runContext, List<T> items) throws Exception {
         var tempFile = runContext.workingDir().createTempFile(".ion").toFile();
 
+        long count;
         try (var writer = Files.newBufferedWriter(tempFile.toPath(), StandardCharsets.UTF_8)) {
-            FileSerde.writeAll(writer, Flux.fromIterable(items)).block();
+            count = FileSerde.writeAll(writer, Flux.fromIterable(items)).block();
         }
 
-        return runContext.storage().putFile(tempFile);
+        return new FetchResult<>(null, null, runContext.storage().putFile(tempFile), Math.toIntExact(count));
     }
 
-    public record FetchResult<T>(List<T> items, T first, URI uri) {
+    public record FetchResult<T>(List<T> items, T first, URI uri, int size) {
     }
 
     /**
@@ -498,7 +499,12 @@ public abstract class AbstractDigitalOceanTask extends Task {
         @Schema(title = "Stored data URI", description = "Populated when fetchType is STORE, points to an ion file in Kestra internal storage.")
         private final URI uri;
 
-        @Schema(title = "Number of rows fetched", description = "Size of the fetched result set for this call.")
+        @Schema(
+            title = "Number of rows fetched",
+            description = """
+                Number of rows in `rows`, `row` or the stored file for this call. \
+                0 when fetchType is NONE, use `total` for the API count."""
+        )
         private final Integer size;
 
         @Schema(title = "Total resources available", description = "Total number of resources reported by the DigitalOcean API (meta.total), regardless of fetchType.")
@@ -507,16 +513,11 @@ public abstract class AbstractDigitalOceanTask extends Task {
 
     protected static PageOutput toPageOutput(RunContext runContext, Property<FetchType> fetchType, List<Map<String, Object>> items, long total) throws Exception {
         var result = fetchOutput(runContext, fetchType, items);
-        var size = result.items() != null ? result.items().size()
-            : result.first() != null ? 1
-            : result.uri() != null ? items.size()
-            : 0;
-
         return PageOutput.builder()
             .rows(result.items())
             .row(result.first())
             .uri(result.uri())
-            .size(size)
+            .size(result.size())
             .total(total)
             .build();
     }
