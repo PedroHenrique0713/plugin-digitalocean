@@ -7,8 +7,11 @@ import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.digitalocean.AbstractDigitalOceanTest;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -62,5 +65,17 @@ class UnassignTest extends AbstractDigitalOceanTest {
             .run(runContextFactory.of(Map.of("inputs", Map.of("ip", "45.55.96.47"))));
 
         verify(postRequestedFor(urlPathEqualTo(AssignTest.PATH)));
+    }
+
+    @Test
+    void rejectsAnInvalidReservedIpBeforeCallingTheApi(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        for (var badIp : List.of("..", "", "45.55.96", "45.55.96.256", "45.55.96.47/actions")) {
+            var task = task(wireMockRuntimeInfo, Property.ofValue(badIp));
+
+            var runContext = runContext();
+            var ex = assertThrows(IllegalArgumentException.class, () -> task.run(runContext));
+            assertThat(ex.getMessage(), containsString("reservedIp must be an IPv4 address such as 45.55.96.47, got '" + badIp + "'"));
+            verify(0, anyRequestedFor(anyUrl()));
+        }
     }
 }

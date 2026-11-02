@@ -25,7 +25,9 @@ import java.net.URI;
 @NoArgsConstructor
 @Schema(
     title = "Get a DigitalOcean reserved IP action",
-    description = "Reads the current status of an action run on a reserved IP, such as the one returned by `reservedip.Assign` or `reservedip.Unassign`: in-progress, completed, or errored."
+    description = """
+        Reads the current status of an action run on a reserved IP, such as the one returned by \
+        `reservedip.Assign` or `reservedip.Unassign`: in-progress, completed, or errored."""
 )
 @Plugin(
     examples = {
@@ -51,12 +53,20 @@ import java.net.URI;
 )
 public class GetAction extends AbstractDigitalOceanTask implements RunnableTask<AbstractDigitalOceanTask.ActionOutput> {
 
-    @Schema(title = "Reserved IP", description = "The reserved IPv4 address the action ran on.")
+    @Schema(
+        title = "Reserved IP",
+        description = """
+            The reserved IPv4 address the action ran on."""
+    )
     @NotNull
     @PluginProperty(group = "main")
     private Property<String> reservedIp;
 
-    @Schema(title = "Action ID", description = "Numeric identifier of the action, e.g. the actionId output of Assign or Unassign.")
+    @Schema(
+        title = "Action ID",
+        description = """
+            Numeric identifier of the action, e.g. the actionId output of Assign or Unassign."""
+    )
     @NotNull
     @PluginProperty(group = "main")
     private Property<String> actionId;
@@ -64,12 +74,12 @@ public class GetAction extends AbstractDigitalOceanTask implements RunnableTask<
     @Override
     public ActionOutput run(RunContext runContext) throws Exception {
         var logger = runContext.logger();
-        var rReservedIp = requireRendered(runContext, reservedIp, String.class, "reservedIp");
-        var rActionId = requireRendered(runContext, actionId, String.class, "actionId");
+        var rReservedIp = ReservedIpValidation.requireIpv4(requireRendered(runContext, reservedIp, String.class, "reservedIp"));
+        var rActionId = ReservedIpValidation.parseActionId(requireRendered(runContext, actionId, String.class, "actionId"));
         var rApiToken = renderApiToken(runContext);
         var rBaseUrl = renderBaseUrl(runContext);
 
-        var url = join(rBaseUrl, "v2/reserved_ips/" + encodePathSegment(rReservedIp) + "/actions/" + encodePathSegment(rActionId));
+        var url = join(rBaseUrl, "v2/reserved_ips/" + encodePathSegment(rReservedIp) + "/actions/" + rActionId);
         var requestBuilder = HttpRequest.builder().uri(URI.create(url)).method("GET");
         var output = toActionOutput(requestJson(runContext, options, rApiToken, requestBuilder));
 

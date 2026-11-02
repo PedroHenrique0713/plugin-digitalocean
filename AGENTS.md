@@ -31,7 +31,7 @@ class's static helpers instead of extending it. Every `List` task extends
 `run()` template method; a subclass only supplies the endpoint path, JSON array key, a log label, and
 (for `database.List`) a row-sanitizing hook. `requireRendered(runContext, property, type, name)` on
 `AbstractDigitalOceanTask` replaces the repeated `render(...).as(...).orElseThrow(...)` pattern for
-required properties.
+required properties, and `parseDropletId(String)` there is the shared numeric droplet id check (volume `Attach`/`Detach`, `reservedip.Assign`).
 
 Source packages under `io.kestra.plugin.digitalocean`:
 
@@ -66,7 +66,8 @@ Source packages under `io.kestra.plugin.digitalocean`:
 - `app.deployment`: `Create`, `Get`, `List`, `Cancel` for App Platform deployments (`/v2/apps/{app_id}/deployments`).
   `DeploymentOutput` reads the reason of the first failed step into `errorMessage`; `List` drops the app spec and the steps from each row.
 - `reservedip`: `Assign`, `Unassign`, `GetAction` for reserved IP actions (`/v2/reserved_ips/{ip}/actions`). All three return
-  `AbstractDigitalOceanTask.ActionOutput`, so a `LoopUntil` on `GetAction` waits for the move to complete.
+  `AbstractDigitalOceanTask.ActionOutput`, so a `LoopUntil` on `GetAction` waits for the move to complete. `reservedIp` must be a
+  dotted-quad IPv4 and `GetAction.actionId` numeric, both checked before any request by the package-private `ReservedIpValidation`.
 
 Each resource package has a shared `<Resource>Output` class (e.g. `DropletOutput`, `ClusterOutput`) reused
 by its `Get` and `Create` (and `Update` where applicable) tasks, since both return the same JSON shape.

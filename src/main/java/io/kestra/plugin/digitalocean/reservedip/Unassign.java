@@ -26,7 +26,9 @@ import java.util.Map;
 @NoArgsConstructor
 @Schema(
     title = "Unassign a DigitalOcean reserved IP",
-    description = "Detaches a reserved IP from its Droplet. The IP stays reserved on the account. The action runs asynchronously: poll `reservedip.GetAction` until its status is completed."
+    description = """
+        Detaches a reserved IP from its Droplet. The IP stays reserved on the account. \
+        The action runs asynchronously: poll `reservedip.GetAction` until its status is completed."""
 )
 @Plugin(
     examples = {
@@ -48,7 +50,11 @@ import java.util.Map;
 )
 public class Unassign extends AbstractDigitalOceanTask implements RunnableTask<AbstractDigitalOceanTask.ActionOutput> {
 
-    @Schema(title = "Reserved IP", description = "The reserved IPv4 address, e.g. 45.55.96.47.")
+    @Schema(
+        title = "Reserved IP",
+        description = """
+            The reserved IPv4 address, e.g. 45.55.96.47."""
+    )
     @NotNull
     @PluginProperty(group = "main")
     private Property<String> reservedIp;
@@ -56,7 +62,7 @@ public class Unassign extends AbstractDigitalOceanTask implements RunnableTask<A
     @Override
     public ActionOutput run(RunContext runContext) throws Exception {
         var logger = runContext.logger();
-        var rReservedIp = requireRendered(runContext, reservedIp, String.class, "reservedIp");
+        var rReservedIp = ReservedIpValidation.requireIpv4(requireRendered(runContext, reservedIp, String.class, "reservedIp"));
         var rApiToken = renderApiToken(runContext);
         var rBaseUrl = renderBaseUrl(runContext);
 

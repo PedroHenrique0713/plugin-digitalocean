@@ -7,11 +7,14 @@ import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.digitalocean.AbstractDigitalOceanTest;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -62,5 +65,29 @@ class GetActionTest extends AbstractDigitalOceanTest {
             .run(runContextFactory.of(Map.of("inputs", Map.of("ip", "45.55.96.47", "action", "72531856"))));
 
         verify(getRequestedFor(urlPathEqualTo(PATH)));
+    }
+
+    @Test
+    void rejectsAnInvalidReservedIpBeforeCallingTheApi(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        for (var badIp : List.of("..", "", "45.55.96", "45.55.96.256", "45.55.96.47/actions")) {
+            var task = task(wireMockRuntimeInfo, Property.ofValue(badIp), Property.ofValue("72531856"));
+
+            var runContext = runContext();
+            var ex = assertThrows(IllegalArgumentException.class, () -> task.run(runContext));
+            assertThat(ex.getMessage(), containsString("reservedIp must be an IPv4 address such as 45.55.96.47, got '" + badIp + "'"));
+            verify(0, anyRequestedFor(anyUrl()));
+        }
+    }
+
+    @Test
+    void rejectsANonNumericActionIdBeforeCallingTheApi(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        for (var badActionId : List.of("..", "", "abc", "72531856/../1", "1.5")) {
+            var task = task(wireMockRuntimeInfo, Property.ofValue("45.55.96.47"), Property.ofValue(badActionId));
+
+            var runContext = runContext();
+            var ex = assertThrows(IllegalArgumentException.class, () -> task.run(runContext));
+            assertThat(ex.getMessage(), containsString("actionId must be a numeric DigitalOcean action id, got '" + badActionId + "'"));
+            verify(0, anyRequestedFor(anyUrl()));
+        }
     }
 }

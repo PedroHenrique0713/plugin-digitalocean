@@ -58,18 +58,31 @@ import java.util.Map;
                         apiToken: "{{ secret('DIGITALOCEAN_TOKEN') }}"
                         reservedIp: 45.55.96.47
                         actionId: "{{ outputs.assign_ip.actionId }}"
+
+                  - id: fail_if_errored
+                    type: io.kestra.plugin.core.execution.Fail
+                    condition: "{{ outputs.get_action.status == 'errored' }}"
+                    errorMessage: "Reserved IP assignment failed"
                 """
         )
     }
 )
 public class Assign extends AbstractDigitalOceanTask implements RunnableTask<AbstractDigitalOceanTask.ActionOutput> {
 
-    @Schema(title = "Reserved IP", description = "The reserved IPv4 address, e.g. 45.55.96.47.")
+    @Schema(
+        title = "Reserved IP",
+        description = """
+            The reserved IPv4 address, e.g. 45.55.96.47."""
+    )
     @NotNull
     @PluginProperty(group = "main")
     private Property<String> reservedIp;
 
-    @Schema(title = "Droplet ID", description = "Numeric identifier of the Droplet to assign the reserved IP to.")
+    @Schema(
+        title = "Droplet ID",
+        description = """
+            Numeric identifier of the Droplet to assign the reserved IP to."""
+    )
     @NotNull
     @PluginProperty(group = "main")
     private Property<String> dropletId;
@@ -77,7 +90,7 @@ public class Assign extends AbstractDigitalOceanTask implements RunnableTask<Abs
     @Override
     public ActionOutput run(RunContext runContext) throws Exception {
         var logger = runContext.logger();
-        var rReservedIp = requireRendered(runContext, reservedIp, String.class, "reservedIp");
+        var rReservedIp = ReservedIpValidation.requireIpv4(requireRendered(runContext, reservedIp, String.class, "reservedIp"));
         var rDropletId = requireRendered(runContext, dropletId, String.class, "dropletId");
         var dropletNumber = parseDropletId(rDropletId);
         var rApiToken = renderApiToken(runContext);
@@ -92,13 +105,5 @@ public class Assign extends AbstractDigitalOceanTask implements RunnableTask<Abs
             .body(HttpRequest.JsonRequestBody.of(Map.of("type", "assign", "droplet_id", dropletNumber)));
 
         return toActionOutput(requestJson(runContext, options, rApiToken, requestBuilder));
-    }
-
-    private static Long parseDropletId(String dropletId) {
-        try {
-            return Long.valueOf(dropletId);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("dropletId must be a numeric DigitalOcean droplet id, got '" + dropletId + "'", e);
-        }
     }
 }
